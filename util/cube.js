@@ -1,43 +1,16 @@
-const CUBE_VERTICES = [
-  [-1, -1, -1],
-  [1, -1, -1],
-  [-1, 1, -1],
-  [1, 1, -1],
-  [-1, -1, 1],
-  [1, -1, 1],
-  [-1, 1, 1],
-  [1, 1, 1]
-]
-
-const CUBE_LINES = [
-  [0, 1],
-  [1, 3],
-  [3, 2],
-  [2, 0],
-  [2, 6],
-  [3, 7],
-  [0, 4],
-  [1, 5],
-  [6, 7],
-  [6, 4],
-  [7, 5],
-  [4, 5]
-]
-
-// TODO: replace this
-const CUBE_LINES2 = [
-  [{ x: 1, y: 1, z: -1 }, { x: -1, y: 1, z: -1 }],
-  [{ x: -1, y: -1, z: -1 }, { x: 1, y: -1, z: -1 }],
-  [{ x: 1, y: 1, z: -1 }, { x: 1, y: -1, z: -1 }],
-  [{ x: -1, y: 1, z: -1 }, { x: -1, y: -1, z: -1 }],
-  [{ x: 1, y: 1, z: 1 }, { x: -1, y: 1, z: 1 }],
-  [{ x: -1, y: -1, z: 1 }, { x: 1, y: -1, z: 1 }],
-  [{ x: 1, y: 1, z: 1 }, { x: 1, y: -1, z: 1 }],
-  [{ x: -1, y: 1, z: 1 }, { x: -1, y: -1, z: 1 }],
-  [{ x: -1, y: 1, z: 1 }, { x: -1, y: 1, z: -1 }],
-  [{ x: 1, y: 1, z: 1 }, { x: 1, y: 1, z: -1 }],
-  [{ x: -1, y: -1, z: 1 }, { x: -1, y: -1, z: -1 }],
-  [{ x: 1, y: -1, z: 1 }, { x: 1, y: -1, z: -1 }]
+export const CUBE_LINES = [
+  [[-1, -1, -1], [1, -1, -1]],
+  [[1, -1, -1], [1, 1, -1]],
+  [[1, 1, -1], [-1, 1, -1]],
+  [[-1, 1, -1], [-1, -1, -1]],
+  [[-1, 1, -1], [-1, 1, 1]],
+  [[1, 1, -1], [1, 1, 1]],
+  [[-1, -1, -1], [-1, -1, 1]],
+  [[1, -1, -1], [1, -1, 1]],
+  [[-1, 1, 1], [1, 1, 1]],
+  [[-1, 1, 1], [-1, -1, 1]],
+  [[1, 1, 1], [1, -1, 1]],
+  [[-1, -1, 1], [1, -1, 1]]
 ]
 
 export const rotateX = ({ x, y, z }, a) => ({
@@ -70,23 +43,22 @@ export const orthographic = (d, { origin, scale }) => ({
   y: origin[1] + scale * d.y
 })
 
-export const enrichLines = (lines, options, angles) => {
-  const point = pt => {
+export const toPoint = ([x, y, z]) => ({ x, y, z })
+
+export const enrichLines = (lines, { angles, project, origin, scale }) => {
+  const enrichPoint = ptArr => {
+    const pt = toPoint(ptArr)
     const rotated = rotateRzRyRx(pt, angles)
-    const projected = options.project(rotated, options)
-    return { ...pt, rotated, projected }
+    const projected = project(rotated, { origin, scale })
+    return { orig: pt, rotated, projected }
   }
 
-  return lines.map(line => {
-    const [p1, p2] = line
-    const newLine = [point(p1), point(p2)]
-    return { ...newLine }
-  })
+  return lines.map(([p1, p2]) => [enrichPoint(p1), enrichPoint(p2)])
 }
 
 export const getCubeLines = ({
-  data = CUBE_LINES2,
-  origin = [480, 250],
+  data = CUBE_LINES,
+  origin = [200, 200],
   scale = 80,
   project = orthographic,
   angleX = Math.PI / 8,
@@ -94,7 +66,7 @@ export const getCubeLines = ({
   angleZ = 0,
   rotateCenter = [0, 0, 0]
 } = {}) => {
-  const options = { origin, scale, project }
   const angles = { x: angleX, y: angleY, z: angleZ, rotateCenter }
-  return enrichLines(data, options, angles)
+  const options = { origin, scale, project, angles }
+  return enrichLines(data, options)
 }

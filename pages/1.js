@@ -1,6 +1,7 @@
 import React from "react"
 import { getCubeLines } from "../util/cube"
 
+const SIZE = 400
 const START_ANGLE = Math.PI / 8
 
 class Page extends React.Component {
@@ -19,11 +20,11 @@ class Page extends React.Component {
 
   render() {
     const { angleX, angleY } = this.state
-    const lines = getCubeLines({ angleX, angleY })
+    const lines = getCubeLines({ angleX, angleY, origin: [SIZE / 2, SIZE / 2] })
 
     return (
       <div>
-        <svg width={960} height={500} onMouseMove={this.handleMouseMove}>
+        <svg width={SIZE} height={SIZE} onMouseMove={this.handleMouseMove}>
           <g>
             {lines.map((l, i) => (
               <line
